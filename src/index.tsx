@@ -1,8 +1,17 @@
 import {
   registerSidebarEntryFilter,
   registerAppBarAction,
-  DefaultAppBarAction,
+  registerAppTheme,
 } from '@kinvolk/headlamp-plugin/lib';
+
+// ── Custom theme: light-blue highlight for selected sidebar items ─────────────
+registerAppTheme({
+  name: 'kiosk',
+  sidebar: {
+    selectedBackground: '#b3d9f7',
+    selectedColor: '#0a3d6b',
+  },
+});
 
 // ── Sidebar entries to remove completely ─────────────────────────────────────
 // registerSidebarEntryFilter only filters plugin-registered entries, not
