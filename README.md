@@ -14,26 +14,44 @@ A [Headlamp™](https://headlamp.dev) plugin that enables kiosk mode: hides the 
 - Node.js >= 18
 - npm
 
-### Install dependencies
-
 ```bash
 npm install
 ```
 
-### Run in dev mode (hot-reload against a running Headlamp)
+### Run in dev mode
 
 ```bash
 npm start
 ```
 
-### Build for production
+### Build
 
 ```bash
 npm run build
 # Output: dist/main.js
 ```
 
-### Test locally in-cluster
+## Local dev cluster (kind)
+
+Two scripts live in `setup/`:
+
+**First time (or full rebuild):**
+```bash
+./setup/setup-headlamp-dev.sh
+```
+Creates a kind cluster called `plugin-dev`, builds this plugin, deploys Headlamp via Helm with all plugin volume mounts pre-declared, and starts a port-forward on `http://localhost:8090`.
+
+**Iterating (build → apply → restart):**
+```bash
+./setup/apply-plugin.sh
+```
+Rebuilds this plugin, updates its ConfigMap in the running cluster, restarts the pod, and re-establishes the port-forward. The cluster and Helm release are not touched.
+
+The crossplane plugin has its own equivalent apply script in its repo — both push into the same `plugin-dev` cluster without interfering with each other.
+
+**Prerequisites:** `kind`, `kubectl`, `helm`, `npm`, `curl`
+
+## Deploy to a cluster via ConfigMap
 
 1. Build the plugin:
 
@@ -41,77 +59,49 @@ npm run build
 npm run build
 ```
 
-2. Create a ConfigMap from the build output:
+2. Create or update the ConfigMap:
 
 ```bash
-kubectl create configmap headlamp-kiosk-plugin \
+kubectl create configmap kiosk-plugin \
   --from-file=main.js=dist/main.js \
-  --from-file=package.json=package.json \
   -n headlamp --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-3. Install (or upgrade) Headlamp mounting the ConfigMap as a plugin volume. Add these overrides to your local `values.local.yaml`:
+3. Mount the ConfigMap into your Headlamp deployment (add to your values):
 
 ```yaml
-headlamp:
-  volumes:
-    - name: kiosk-plugin
-      configMap:
-        name: headlamp-kiosk-plugin
-  volumeMounts:
-    - name: kiosk-plugin
-      mountPath: /headlamp/user-plugins/headlamp-kiosk/main.js
-      subPath: main.js
-    - name: kiosk-plugin
-      mountPath: /headlamp/user-plugins/headlamp-kiosk/package.json
-      subPath: package.json
-```
-
-```bash
-helm upgrade --install headlamp ../headlamp-deployment/helm/ \
-  -n headlamp --create-namespace \
-  -f ../headlamp-deployment/helm/values.yaml \
-  -f values.local.yaml
+volumes:
+  - name: kiosk-plugin
+    configMap:
+      name: kiosk-plugin
+volumeMounts:
+  - name: kiosk-plugin
+    mountPath: /headlamp/plugins/kiosk-mode/main.js
+    subPath: main.js
 ```
 
 4. To iterate: rebuild, re-apply the ConfigMap, then restart the pod:
 
 ```bash
 npm run build
-kubectl create configmap headlamp-kiosk-plugin \
+kubectl create configmap kiosk-plugin \
   --from-file=main.js=dist/main.js \
-  --from-file=package.json=package.json \
   -n headlamp --dry-run=client -o yaml | kubectl apply -f -
 kubectl rollout restart deployment headlamp -n headlamp
 ```
 
-> **Tip:** Kiosk mode hides all nav, making it hard to navigate during dev. To disable it temporarily, delete the ConfigMap and restart — or just skip the volume mount in your local values.
+> **Tip:** Kiosk mode hides all nav, making it hard to navigate during dev. To disable it temporarily, delete the ConfigMap and restart the pod.
 
 ## Release
 
-Releases are automated via GitHub Actions (`.github/workflows/release.yml`).
-
-Push a semver tag to trigger a build and publish a GitHub Release with the plugin tarball:
+Push a semver tag to trigger the GitHub Actions release workflow:
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The workflow produces `headlamp-kiosk.tar.gz` containing `main.js` and `package.json`.
-
-## Consuming in the deployment chart
-
-In `headlamp-deployment` set:
-
-```yaml
-headlamp:
-  pluginsManager:
-    configContent: |
-      plugins:
-        - name: headlamp-kiosk
-          source: https://github.com/<your-org>/headlamp-kiosk-plugin/releases/latest/download/headlamp-kiosk.tar.gz
-```
+The workflow builds the plugin and publishes `main.js` as a GitHub Release asset.
 
 ### Support, Feedback, Contributing
 

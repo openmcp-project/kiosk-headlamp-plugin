@@ -1,26 +1,54 @@
 import {
+  registerSidebarEntryFilter,
   registerAppBarAction,
   registerAppTheme,
 } from '@kinvolk/headlamp-plugin/lib';
 
 // ── Fiori Horizon design tokens ───────────────────────────────────────────────
+// These mirror the SAP Fiori Horizon palette used by the ManagedControlPlane UI
+// so that the embedded Headlamp view feels visually coherent.
 const FIORI = {
-  primaryBlue:    '#0070F2',
-  pageBackground: '#F5F6F7',
-  cardBackground: '#FFFFFF',
-  bodyText:       '#1D2D3E',
-  mutedText:      '#6B7280',
-  successGreen:   '#107E3E',
-  warningAmber:   '#E9730C',
-  errorRed:       '#BB0000',
-  borderRadius:   '8px',
-  spacing:        '8px',
+  primaryBlue:        '#0070F2',
+  sidebarSelectedBg:  '#b3d9f7', // light SAP blue — visible but not full-filled
+  sidebarSelectedFg:  '#0a3d6b', // dark navy for contrast on light bg
+  pageBackground:     '#F5F6F7',
+  cardBackground:     '#FFFFFF',
+  bodyText:           '#1D2D3E',
+  mutedText:          '#6B7280',
+  successGreen:       '#107E3E',
+  warningAmber:       '#E9730C',
+  errorRed:           '#BB0000',
+  borderRadius:       '8px',
+  spacing:            '8px',
 };
 
-// ── Theme registration (kept for completeness, CSS overrides are authoritative) ─
-registerAppTheme({ name: 'kiosk', sidebar: {} });
+// ── Custom theme: Fiori-aligned sidebar highlight ─────────────────────────────
+registerAppTheme({
+  name: 'kiosk',
+  sidebar: {
+    selectedBackground: FIORI.sidebarSelectedBg,
+    selectedColor:      FIORI.sidebarSelectedFg,
+  },
+});
 
-// ── Strip all app-bar actions so they're not keyboard-accessible ──────────────
+// ── Sidebar entries to remove completely ─────────────────────────────────────
+// registerSidebarEntryFilter only filters plugin-registered entries, not
+// Headlamp's built-in sidebar items. Those are hidden via CSS (aria-label
+// selectors) in applyKioskStyles below.
+const HIDDEN_SIDEBAR_ENTRIES = new Set([
+  'home',       // Home / overview section
+  'storage',    // PVCs, PVs, StorageClasses
+  'network',    // Services, Ingresses, NetworkPolicies, …
+  'gatewayapi', // Gateways, HTTPRoutes, …
+]);
+
+registerSidebarEntryFilter(entry =>
+  HIDDEN_SIDEBAR_ENTRIES.has(entry.name) ? null : entry
+);
+
+// ── Remove all app-bar actions (search, notifications, settings, user) ───────
+// The AppBar itself is hidden via CSS, but stripping the actions prevents them
+// from being keyboard-accessible or from interfering with layout.
 registerAppBarAction({
   id: 'kiosk-strip-appbar-actions',
   processor: () => [],
@@ -41,30 +69,36 @@ function forceDefaultNamespace() {
   } catch (_) {}
 }
 
-// ── Force redirect to Flux overview — the kiosk landing view ─────────────────
-//
-// Any path that is not under /flux/ (and is not a login/auth page) gets
-// redirected to /flux/overview so users always land on the Flux dashboard
-// and cannot navigate away via the (now-hidden) sidebar.
-function enforceFluxView() {
-  const base = window.location.pathname.replace(/\/$/, '');
-  // Extract the sub-path after the cluster prefix /c/<cluster>
-  const clusterMatch = base.match(/^(\/[^/]+\/[^/]+)(\/.*)?$/);
-  const subPath = clusterMatch ? (clusterMatch[2] || '') : base;
+// ── Force sidebar into collapsed (icon-only) state ───────────────────────────
+function forceSidebarCollapsed() {
+  try {
+    localStorage.setItem('sidebar', JSON.stringify({ shrink: true }));
+  } catch (_) {}
 
-  // Leave auth/login pages alone
-  if (subPath.startsWith('/login') || subPath.startsWith('/auth')) return;
+  const tryDispatch = (): boolean => {
+    try {
+      const pluginLib = (window as any).pluginLib;
+      if (!pluginLib) return false;
+      const store = pluginLib['redux/stores/store']?.default;
+      const sidebarSlice = pluginLib['components/Sidebar/sidebarSlice'];
+      if (!store || !sidebarSlice?.setWhetherSidebarOpen) return false;
+      store.dispatch(sidebarSlice.setWhetherSidebarOpen(false));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
 
-  // If already on a flux route, do nothing
-  if (subPath.startsWith('/flux')) return;
-
-  // Redirect to flux overview
-  const fluxPath = base.replace(/([^/]+)(\/.*)?$/, '$1/flux/overview');
-  window.history.replaceState(null, '', fluxPath);
-  window.dispatchEvent(new PopStateEvent('popstate'));
+  if (!tryDispatch()) {
+    let attempts = 0;
+    const id = setInterval(() => {
+      attempts++;
+      if (tryDispatch() || attempts >= 20) clearInterval(id);
+    }, 100);
+  }
 }
 
-// ── CSS: full kiosk layout ────────────────────────────────────────────────────
+// ── CSS: hide AppBar, error banners; Fiori styling ────────────────────────────
 function applyKioskStyles() {
   const styleId = 'kiosk-mode-styles';
   document.getElementById(styleId)?.remove();
@@ -98,29 +132,44 @@ function applyKioskStyles() {
       display: none !important;
     }
 
-    /* ── Hide the entire sidebar (icon rail + drawer) ── */
-    nav[aria-label="Navigation"],
-    [class*="Navigation-module"],
-    [class*="sidebar"],
-    [class*="Sidebar"],
-    aside {
-      display: none !important;
-    }
-
-    /* ── Remove AppBar top-padding and make root a plain flex row ── */
+    /* ── Remove AppBar top-padding; make root a plain flex row ── */
     #root > div[class*="MuiBox"] {
       padding-top: 0 !important;
       flex-direction: row !important;
     }
 
-    /* ── Main content fills the full viewport ── */
+    /* ── Main content fills the viewport ── */
     main {
       margin-left: 0 !important;
       padding: 16px !important;
-      width: 100vw !important;
-      max-width: 100vw !important;
+      width: 100% !important;
+      max-width: 100% !important;
       flex: 1 !important;
       background-color: var(--kiosk-page-bg) !important;
+    }
+
+    /* ── Row wrapper fills full height ── */
+    #root > div[class*="MuiBox"] > div[class*="MuiBox"] {
+      width: 100% !important;
+    }
+
+    /* ── Sidebar selected-item highlight (Fiori blue) ── */
+    /* registerAppTheme does not auto-activate — CSS is the reliable path. */
+    nav [class*="MuiListItemButton-root"][class*="Mui-selected"],
+    nav [class*="MuiListItemButton-root"][class*="Mui-selected"]:hover {
+      background-color: ${FIORI.sidebarSelectedBg} !important;
+      color: ${FIORI.sidebarSelectedFg} !important;
+    }
+    nav [class*="MuiListItemButton-root"][class*="Mui-selected"] [class*="MuiListItemText-primary"],
+    nav [class*="MuiListItemButton-root"][class*="Mui-selected"] [class*="MuiSvgIcon-root"] {
+      color: ${FIORI.sidebarSelectedFg} !important;
+    }
+
+    /* ── Hide specific built-in sidebar entries by aria-label ── */
+    nav a[aria-label="Storage"],
+    nav a[aria-label="Network"],
+    nav a[aria-label="Gateway (beta)"] {
+      display: none !important;
     }
 
     /* ── Hide all alerts / error banners ── */
@@ -168,12 +217,12 @@ function applyKioskStyles() {
 
   document.head.appendChild(style);
 
-  // Imperatively suppress alerts that win the specificity battle
+  // Belt-and-suspenders: imperatively suppress any alerts that win specificity
   document.querySelectorAll('[role="alert"], [class*="MuiAlert-root"]').forEach((el) => {
     (el as HTMLElement).style.setProperty('display', 'none', 'important');
   });
 
-  // Suppress text-matched cluster-error banners
+  // Suppress text-matched cluster-error banners inside <main>
   const main = document.querySelector('main');
   if (main) {
     Array.from(main.children).forEach((el) => {
@@ -187,31 +236,23 @@ function applyKioskStyles() {
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 if (typeof window !== 'undefined') {
+  forceSidebarCollapsed();
   forceDefaultNamespace();
   applyKioskStyles();
-  enforceFluxView();
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      applyKioskStyles();
-      enforceFluxView();
-    });
+    document.addEventListener('DOMContentLoaded', applyKioskStyles);
   }
 
-  // Re-apply styles after React hydration
-  setTimeout(() => { applyKioskStyles(); enforceFluxView(); }, 100);
-  setTimeout(() => { applyKioskStyles(); enforceFluxView(); }, 500);
-  setTimeout(() => { applyKioskStyles(); enforceFluxView(); }, 1500);
+  // Re-apply after React hydration and lazy chunk loads
+  setTimeout(applyKioskStyles, 100);
+  setTimeout(applyKioskStyles, 500);
+  setTimeout(applyKioskStyles, 1500);
 
-  // Re-apply on every SPA navigation and enforce Flux view
-  const observer = new MutationObserver(() => {
-    applyKioskStyles();
-    enforceFluxView();
-  });
+  // Re-apply on every SPA navigation
+  const observer = new MutationObserver(applyKioskStyles);
   observer.observe(document.body, { childList: true, subtree: true });
 
-  window.addEventListener('popstate', () => {
-    applyKioskStyles();
-    enforceFluxView();
-  });
+  // Re-collapse sidebar on every navigation so the user can't expand it
+  window.addEventListener('popstate', forceSidebarCollapsed);
 }

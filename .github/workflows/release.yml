@@ -25,14 +25,8 @@ jobs:
       - name: Build plugin
         run: npm run build
 
-      - name: Package plugin
-        run: |
-          tar -czf headlamp-kiosk.tar.gz \
-            -C dist main.js \
-            package.json
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: headlamp-kiosk.tar.gz
+          files: dist/main.js
           generate_release_notes: true
