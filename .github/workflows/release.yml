@@ -1,9 +1,11 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version in semver format, e.g. v1.0.0'
+        required: true
 
 jobs:
   release:
@@ -12,6 +14,17 @@ jobs:
       contents: write
 
     steps:
+      - name: Tag commit with version
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ github.event.inputs.version }}',
+              sha: context.sha
+            })
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -25,8 +38,42 @@ jobs:
       - name: Build plugin
         run: npm run build
 
+      - name: Package plugin tar.gz for ArtifactHub
+        run: |
+          VERSION=${{ github.event.inputs.version }}
+          SEMVER=${VERSION#v}
+          mkdir -p package/kiosk
+          cp dist/main.js package/kiosk/main.js
+          cp package.json package/kiosk/package.json
+          tar -czf headlamp-kiosk-${SEMVER}.tar.gz -C package kiosk
+          echo "TARBALL=headlamp-kiosk-${SEMVER}.tar.gz" >> $GITHUB_ENV
+          echo "SEMVER=${SEMVER}" >> $GITHUB_ENV
+
+      - name: Compute checksum and update artifacthub-pkg.yml
+        run: |
+          CHECKSUM=$(sha256sum ${{ env.TARBALL }} | awk '{print $1}')
+          PKGFILE="artifacthub/${SEMVER}/artifacthub-pkg.yml"
+          mkdir -p "artifacthub/${SEMVER}"
+          if [ ! -f "$PKGFILE" ]; then
+            cp "artifacthub/1.0.0/artifacthub-pkg.yml" "$PKGFILE"
+          fi
+          sed -i "s|version: .*|version: ${SEMVER}|" "$PKGFILE"
+          sed -i "s|/releases/download/v[^/]*/headlamp-kiosk-[^.]*\.tar\.gz|/releases/download/${{ github.event.inputs.version }}/headlamp-kiosk-${SEMVER}.tar.gz|" "$PKGFILE"
+          sed -i "s|sha256:.*|sha256:${CHECKSUM}|" "$PKGFILE"
+
+      - name: Commit updated artifacthub-pkg.yml
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add artifacthub/
+          git diff --staged --quiet || git commit -m "chore: update artifacthub metadata for ${{ github.event.inputs.version }}"
+          git push origin HEAD:main
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/main.js
+          tag_name: ${{ github.event.inputs.version }}
+          files: |
+            dist/main.js
+            ${{ env.TARBALL }}
           generate_release_notes: true
