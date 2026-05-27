@@ -1,3 +1,5 @@
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/kiosk-headlamp-plugin)](https://artifacthub.io/packages/search?repo=kiosk-headlamp-plugin)
+
 # headlamp-kiosk-plugin
 
 A [Headlamp™](https://headlamp.dev) plugin that enables kiosk mode: hides the sidebar and top bar, expands the main content to full viewport, and auto-redirects the cluster root page.
