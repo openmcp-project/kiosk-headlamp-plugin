@@ -14,17 +14,6 @@ jobs:
       contents: write
 
     steps:
-      - name: Tag commit with version
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        with:
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/tags/${{ github.event.inputs.version }}',
-              sha: context.sha
-            })
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -49,25 +38,28 @@ jobs:
           echo "TARBALL=headlamp-kiosk-${SEMVER}.tar.gz" >> $GITHUB_ENV
           echo "SEMVER=${SEMVER}" >> $GITHUB_ENV
 
-      - name: Compute checksum and update artifacthub-pkg.yml
+      - name: Write artifacthub-pkg.yml for this version
         run: |
           CHECKSUM=$(sha256sum ${{ env.TARBALL }} | awk '{print $1}')
+          SEMVER=${{ env.SEMVER }}
+          VERSION=${{ github.event.inputs.version }}
+          TEMPLATE="artifacthub/1.0.0/artifacthub-pkg.yml"
           PKGFILE="artifacthub/${SEMVER}/artifacthub-pkg.yml"
           mkdir -p "artifacthub/${SEMVER}"
-          if [ ! -f "$PKGFILE" ]; then
-            cp "artifacthub/1.0.0/artifacthub-pkg.yml" "$PKGFILE"
-          fi
+          cp "$TEMPLATE" "$PKGFILE"
           sed -i "s|version: .*|version: ${SEMVER}|" "$PKGFILE"
-          sed -i "s|/releases/download/v[^/]*/headlamp-kiosk-[^.]*\.tar\.gz|/releases/download/${{ github.event.inputs.version }}/headlamp-kiosk-${SEMVER}.tar.gz|" "$PKGFILE"
+          sed -i "s|/releases/download/v[^/]*/headlamp-kiosk-[^.]*\.tar\.gz|/releases/download/${VERSION}/headlamp-kiosk-${SEMVER}.tar.gz|" "$PKGFILE"
           sed -i "s|sha256:.*|sha256:${CHECKSUM}|" "$PKGFILE"
+          echo "PKGFILE=${PKGFILE}" >> $GITHUB_ENV
 
-      - name: Commit updated artifacthub-pkg.yml
+      - name: Commit artifacthub-pkg.yml and tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add artifacthub/
-          git diff --staged --quiet || git commit -m "chore: update artifacthub metadata for ${{ github.event.inputs.version }}"
-          git push origin HEAD:main
+          git diff --staged --quiet || git commit -m "chore: add artifacthub metadata for ${{ github.event.inputs.version }}"
+          git tag ${{ github.event.inputs.version }}
+          git push origin HEAD:main --follow-tags
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

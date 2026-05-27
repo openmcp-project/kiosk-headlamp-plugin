@@ -102,8 +102,6 @@ Trigger a release via the [GitHub Actions release workflow](../../actions/workfl
 
 Once published, the plugin is installable via Headlamp's plugin manager using its ArtifactHub URL.
 
-> **First-time setup:** See the [ArtifactHub Headlamp plugins documentation](https://artifacthub.io/docs/topics/repositories/headlamp-plugins/). Register the repository on [artifacthub.io](https://artifacthub.io) (type: Headlamp, packages URL: `https://github.com/openmcp-project/kiosk-headlamp-plugin/artifacthub`), then fill in the `repositoryID` and owner email in `artifacthub/artifacthub-repo.yml`.
-
 ### Support, Feedback, Contributing
 
 This project is open to feature requests/suggestions, bug reports etc. via [GitHub issues](https://github.com/openmcp-project/kiosk-headlamp-plugin/issues). Contribution and feedback are encouraged and always welcome. For more information about how to contribute, the project structure, as well as additional contribution information, see our [Contribution Guidelines](https://github.com/openmcp-project/.github/blob/main/CONTRIBUTING.md).
