@@ -15,84 +15,33 @@ A [Headlamp™](https://headlamp.dev) plugin that enables kiosk mode: hides the 
 
 - Node.js >= 18
 - npm
+- `kind`, `kubectl`, `helm` (for local cluster)
 
 ```bash
 npm install
 ```
 
-### Run in dev mode
+### Local dev cluster (kind)
+
+The cluster setup and plugin iteration is managed centrally from the `ui-frontend` repo. Both this plugin and the crossplane plugin are built and synced together.
+
+**One-time setup** (creates the kind cluster, deploys Headlamp with latest ArtifactHub plugin releases, port-forwards to `localhost:8090`):
 
 ```bash
-npm start
+# from ui-frontend/ or from this repo
+task dev
 ```
 
-### Build
+**Every time you change plugin code** (builds + hot-syncs all local plugins into the pod, no restart needed):
 
 ```bash
-npm run build
-# Output: dist/main.js
+# from ui-frontend/ or from this repo
+task update
 ```
 
-## Local dev cluster (kind)
+Then hard-refresh the browser (`Cmd+Shift+R`) to pick up the new build.
 
-Two scripts live in `setup/`:
-
-**First time (or full rebuild):**
-```bash
-./setup/setup-headlamp-dev.sh
-```
-Creates a kind cluster called `plugin-dev`, builds this plugin, deploys Headlamp via Helm with all plugin volume mounts pre-declared, and starts a port-forward on `http://localhost:8090`.
-
-**Iterating (build → apply → restart):**
-```bash
-./setup/apply-plugin.sh
-```
-Rebuilds this plugin, updates its ConfigMap in the running cluster, restarts the pod, and re-establishes the port-forward. The cluster and Helm release are not touched.
-
-The crossplane plugin has its own equivalent apply script in its repo — both push into the same `plugin-dev` cluster without interfering with each other.
-
-**Prerequisites:** `kind`, `kubectl`, `helm`, `npm`, `curl`
-
-## Deploy to a cluster via ConfigMap
-
-1. Build the plugin:
-
-```bash
-npm run build
-```
-
-2. Create or update the ConfigMap:
-
-```bash
-kubectl create configmap kiosk-plugin \
-  --from-file=main.js=dist/main.js \
-  -n headlamp --dry-run=client -o yaml | kubectl apply -f -
-```
-
-3. Mount the ConfigMap into your Headlamp deployment (add to your values):
-
-```yaml
-volumes:
-  - name: kiosk-plugin
-    configMap:
-      name: kiosk-plugin
-volumeMounts:
-  - name: kiosk-plugin
-    mountPath: /headlamp/plugins/kiosk-mode/main.js
-    subPath: main.js
-```
-
-4. To iterate: rebuild, re-apply the ConfigMap, then restart the pod:
-
-```bash
-npm run build
-kubectl create configmap kiosk-plugin \
-  --from-file=main.js=dist/main.js \
-  -n headlamp --dry-run=client -o yaml | kubectl apply -f -
-kubectl rollout restart deployment headlamp -n headlamp
-```
-
-> **Tip:** Kiosk mode hides all nav, making it hard to navigate during dev. To disable it temporarily, delete the ConfigMap and restart the pod.
+> **Tip:** Kiosk mode hides all nav, making it hard to navigate during dev. Use `task update` to temporarily swap in a build with kiosk disabled.
 
 ## Release
 
