@@ -1,0 +1,12 @@
+version: "3"
+
+tasks:
+  dev:
+    desc: "Bootstrap local Headlamp kind cluster (delegates to ui-frontend). Usage: task dev"
+    cmds:
+      - task -d ../ui-frontend headlamp:dev
+
+  update:
+    desc: "Build this plugin and hot-sync it into the running headlamp-dev pod. Usage: task update"
+    cmds:
+      - task -d ../ui-frontend headlamp:update
