@@ -1,5 +1,10 @@
 version: "3"
 
+vars:
+  CONTEXT: kind-headlamp-dev
+  NAMESPACE: headlamp
+  PLUGIN_DIR: headlamp_kiosk
+
 tasks:
   dev:
     desc: "Bootstrap local Headlamp kind cluster (delegates to ui-frontend). Usage: task dev"
@@ -7,6 +12,15 @@ tasks:
       - task -d ../ui-frontend headlamp:dev
 
   update:
-    desc: "Build this plugin and hot-sync it into the running headlamp-dev pod. Usage: task update"
+    desc: "Build this plugin and hot-sync only kiosk into the running headlamp-dev pod. Usage: task update"
     cmds:
-      - task -d ../ui-frontend headlamp:update
+      - npm run build
+      - |
+        POD=$(kubectl --context {{.CONTEXT}} get pod -n {{.NAMESPACE}} -l app.kubernetes.io/name=headlamp -o jsonpath='{.items[0].metadata.name}')
+        if [[ -z "$POD" ]]; then
+          echo "error: no headlamp pod found — run: task dev" >&2
+          exit 1
+        fi
+        echo "→ syncing to pod ${POD}:/headlamp/plugins/{{.PLUGIN_DIR}}/main.js ..."
+        kubectl --context {{.CONTEXT}} cp dist/main.js "{{.NAMESPACE}}/${POD}:/headlamp/plugins/{{.PLUGIN_DIR}}/main.js"
+        echo "✓ kiosk plugin synced — hard-refresh the browser to pick up changes"
