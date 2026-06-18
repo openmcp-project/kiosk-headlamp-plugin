@@ -9,7 +9,7 @@ changes:
     description: "Initial release"
 annotations:
   headlamp/plugin/archive-url: >-
-    https://github.com/openmcp-project/kiosk-headlamp-plugin/releases/download/v0.0.2/headlamp-kiosk-0.0.2.tar.gz
+    https://github.com/openmcp-project/kiosk-headlamp-plugin/releases/download/v0.0.3/headlamp-kiosk-0.0.3.tar.gz
   headlamp/plugin/archive-checksum: sha256:9a90fa8f4bf215a644393cfb5a74ebfebfa5c146cd494b87805324a6d64fee58
   headlamp/plugin/version-compat: ">=0.22"
   headlamp/plugin/distro-compat: in-cluster,web
