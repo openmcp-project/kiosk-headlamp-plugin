@@ -1,6 +1,10 @@
 {
   "name": "kiosk-mode",
   "version": "0.0.3",
+  "engines": {
+    "node": "^24.0.0",
+    "npm": "^10.0.0"
+  },
   "description": "Kiosk mode plugin for Headlamp — kiosk chrome removal, Fiori styling, and OCP overview page",
   "main": "main.js",
   "scripts": {
