@@ -7,9 +7,9 @@ vars:
 
 tasks:
   dev:
-    desc: "Bootstrap local Headlamp kind cluster (delegates to ui-frontend). Usage: task dev"
+    desc: "Build this plugin + bootstrap local Headlamp kind cluster (delegates to ui-frontend). Usage: task dev"
     cmds:
-      - task -d ../ui-frontend headlamp:dev
+      - task -d ../ui-frontend headlamp:setup
 
   update:
     desc: "Build this plugin and hot-sync only kiosk into the running headlamp-dev pod. Usage: task update"
@@ -22,6 +22,7 @@ tasks:
           exit 1
         fi
         echo "→ syncing to pod ${POD}:/headlamp/plugins/{{.PLUGIN_DIR}}/ ..."
+        kubectl --context {{.CONTEXT}} exec -n {{.NAMESPACE}} "${POD}" -- mkdir -p "/headlamp/plugins/{{.PLUGIN_DIR}}"
         kubectl --context {{.CONTEXT}} cp dist/main.js "{{.NAMESPACE}}/${POD}:/headlamp/plugins/{{.PLUGIN_DIR}}/main.js"
         kubectl --context {{.CONTEXT}} cp package.json "{{.NAMESPACE}}/${POD}:/headlamp/plugins/{{.PLUGIN_DIR}}/package.json"
         echo "✓ kiosk plugin synced — hard-refresh the browser to pick up changes"
