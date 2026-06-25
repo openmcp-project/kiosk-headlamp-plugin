@@ -10,6 +10,6 @@ changes:
 annotations:
   headlamp/plugin/archive-url: >-
     https://github.com/openmcp-project/opencontrolplane-headlamp-plugin/releases/download/v0.0.4/headlamp-opencontrolplane-0.0.4.tar.gz
-  headlamp/plugin/archive-checksum: sha256:4d5a80f8d5b5b832cad19d947588ddd2cd7a017068ab9535ff7b857f971be667
+  headlamp/plugin/archive-checksum: sha256:7c94f0837656c6828c600e1602e45061b743f795e3f0f56ff58caae397928a07
   headlamp/plugin/version-compat: ">=0.22"
   headlamp/plugin/distro-compat: in-cluster,web
