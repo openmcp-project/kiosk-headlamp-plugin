@@ -3,7 +3,7 @@ version: "3"
 vars:
   CONTEXT: kind-headlamp-dev
   NAMESPACE: headlamp
-  PLUGIN_DIR: headlamp_kiosk
+  PLUGIN_DIR: opencontrolplane
 
 tasks:
   dev:
@@ -12,7 +12,7 @@ tasks:
       - task -d ../ui-frontend headlamp:setup
 
   update:
-    desc: "Build this plugin and hot-sync only kiosk into the running headlamp-dev pod. Usage: task update"
+    desc: "Build this plugin and hot-sync only OCP plugin into the running headlamp-dev pod. Usage: task update"
     cmds:
       - npm run build
       - |
@@ -25,4 +25,4 @@ tasks:
         kubectl --context {{.CONTEXT}} exec -n {{.NAMESPACE}} "${POD}" -- mkdir -p "/headlamp/plugins/{{.PLUGIN_DIR}}"
         kubectl --context {{.CONTEXT}} cp dist/main.js "{{.NAMESPACE}}/${POD}:/headlamp/plugins/{{.PLUGIN_DIR}}/main.js"
         kubectl --context {{.CONTEXT}} cp package.json "{{.NAMESPACE}}/${POD}:/headlamp/plugins/{{.PLUGIN_DIR}}/package.json"
-        echo "✓ kiosk plugin synced — hard-refresh the browser to pick up changes"
+        echo "✓ OCP plugin synced — hard-refresh the browser to pick up changes"

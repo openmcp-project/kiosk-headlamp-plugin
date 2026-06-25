@@ -26,7 +26,7 @@ const FIORI = {
 
 // ── Custom theme: Fiori-aligned sidebar highlight ─────────────────────────────
 registerAppTheme({
-  name: 'kiosk',
+  name: 'ocp',
   sidebar: {
     selectedBackground: FIORI.sidebarSelectedBg,
     selectedColor:      FIORI.sidebarSelectedFg,
@@ -47,7 +47,7 @@ registerSidebarEntryFilter(entry =>
 
 // ── Remove all app-bar actions ────────────────────────────────────────────────
 registerAppBarAction({
-  id: 'kiosk-strip-appbar-actions',
+  id: 'ocp-strip-appbar-actions',
   processor: () => [],
 });
 
@@ -342,9 +342,9 @@ function forceSidebarCollapsed() {
   }
 }
 
-// ── CSS: kiosk chrome removal + Fiori styling + OCP sidebar ordering ──────────
-function applyKioskStyles() {
-  const styleId = 'kiosk-mode-styles';
+// ── CSS: OCP chrome removal + Fiori styling + OCP sidebar ordering ────────────
+function applyOCPStyles() {
+  const styleId = 'ocp-styles';
   document.getElementById(styleId)?.remove();
 
   const style = document.createElement('style');
@@ -352,20 +352,20 @@ function applyKioskStyles() {
   style.innerHTML = `
     /* ── Fiori Horizon design tokens ── */
     :root {
-      --kiosk-primary:   ${FIORI.primaryBlue};
-      --kiosk-page-bg:   ${FIORI.pageBackground};
-      --kiosk-card-bg:   ${FIORI.cardBackground};
-      --kiosk-body-text: ${FIORI.bodyText};
-      --kiosk-muted:     ${FIORI.mutedText};
-      --kiosk-success:   ${FIORI.successGreen};
-      --kiosk-warning:   ${FIORI.warningAmber};
-      --kiosk-error:     ${FIORI.errorRed};
-      --kiosk-radius:    ${FIORI.borderRadius};
+      --ocp-primary:   ${FIORI.primaryBlue};
+      --ocp-page-bg:   ${FIORI.pageBackground};
+      --ocp-card-bg:   ${FIORI.cardBackground};
+      --ocp-body-text: ${FIORI.bodyText};
+      --ocp-muted:     ${FIORI.mutedText};
+      --ocp-success:   ${FIORI.successGreen};
+      --ocp-warning:   ${FIORI.warningAmber};
+      --ocp-error:     ${FIORI.errorRed};
+      --ocp-radius:    ${FIORI.borderRadius};
     }
 
     /* ── Page & body background ── */
     body, #root {
-      background-color: var(--kiosk-page-bg) !important;
+      background-color: var(--ocp-page-bg) !important;
     }
 
     /* ── Hide the Headlamp AppBar (top bar with logo, search, user) ── */
@@ -389,7 +389,7 @@ function applyKioskStyles() {
       width: 100% !important;
       max-width: 100% !important;
       flex: 1 !important;
-      background-color: var(--kiosk-page-bg) !important;
+      background-color: var(--ocp-page-bg) !important;
     }
 
     /* ── Row wrapper fills full height ── */
@@ -434,18 +434,18 @@ function applyKioskStyles() {
     /* ── Fiori-aligned card radius & background ── */
     [class*="MuiPaper-root"][class*="MuiCard-root"],
     [class*="MuiPaper-elevation"] {
-      border-radius: var(--kiosk-radius) !important;
-      background-color: var(--kiosk-card-bg) !important;
+      border-radius: var(--ocp-radius) !important;
+      background-color: var(--ocp-card-bg) !important;
     }
 
     /* ── Body text colour ── */
     body, [class*="MuiTypography-body"] {
-      color: var(--kiosk-body-text) !important;
+      color: var(--ocp-body-text) !important;
     }
 
     /* ── Primary buttons ── */
     [class*="MuiButton-containedPrimary"] {
-      background-color: var(--kiosk-primary) !important;
+      background-color: var(--ocp-primary) !important;
       border-radius: 4px !important;
     }
     [class*="MuiButton-containedPrimary"]:hover {
@@ -454,7 +454,7 @@ function applyKioskStyles() {
 
     /* ── Links ── */
     a:not([class*="MuiButton"]) {
-      color: var(--kiosk-primary) !important;
+      color: var(--ocp-primary) !important;
     }
 
     /* ── Hide "Create / Apply" button ── */
@@ -502,19 +502,19 @@ function applyKioskStyles() {
 if (typeof window !== 'undefined') {
   forceSidebarCollapsed();
   forceDefaultNamespace();
-  applyKioskStyles();
+  applyOCPStyles();
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyKioskStyles);
+    document.addEventListener('DOMContentLoaded', applyOCPStyles);
   }
 
   // Re-apply after React hydration and lazy chunk loads
-  setTimeout(applyKioskStyles, 100);
-  setTimeout(applyKioskStyles, 500);
-  setTimeout(applyKioskStyles, 1500);
+  setTimeout(applyOCPStyles, 100);
+  setTimeout(applyOCPStyles, 500);
+  setTimeout(applyOCPStyles, 1500);
 
   // Re-apply on every SPA navigation
-  const observer = new MutationObserver(applyKioskStyles);
+  const observer = new MutationObserver(applyOCPStyles);
   observer.observe(document.body, { childList: true, subtree: true });
 
   // Re-collapse sidebar on every navigation so the user can't expand it

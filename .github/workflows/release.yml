@@ -31,11 +31,11 @@ jobs:
         run: |
           VERSION=${{ github.event.inputs.version }}
           SEMVER=${VERSION#v}
-          mkdir -p package/kiosk
-          cp dist/main.js package/kiosk/main.js
-          cp package.json package/kiosk/package.json
-          tar -czf headlamp-kiosk-${SEMVER}.tar.gz -C package kiosk
-          echo "TARBALL=headlamp-kiosk-${SEMVER}.tar.gz" >> $GITHUB_ENV
+          mkdir -p package/opencontrolplane
+          cp dist/main.js package/opencontrolplane/main.js
+          cp package.json package/opencontrolplane/package.json
+          tar -czf headlamp-opencontrolplane-${SEMVER}.tar.gz -C package opencontrolplane
+          echo "TARBALL=headlamp-opencontrolplane-${SEMVER}.tar.gz" >> $GITHUB_ENV
           echo "SEMVER=${SEMVER}" >> $GITHUB_ENV
 
       - name: Write artifacthub-pkg.yml for this version
@@ -49,7 +49,7 @@ jobs:
           cp "$TEMPLATE" "$PKGFILE"
           [ -f "artifacthub/0.0.2/README.md" ] && cp "artifacthub/0.0.2/README.md" "artifacthub/${SEMVER}/README.md"
           sed -i "s|version: .*|version: ${SEMVER}|" "$PKGFILE"
-          sed -i "s|https://github.com/openmcp-project/[^/]*/releases/download/[^/]*/[^ ]*\.tar\.gz|https://github.com/openmcp-project/kiosk-headlamp-plugin/releases/download/${VERSION}/headlamp-kiosk-${SEMVER}.tar.gz|g" "$PKGFILE"
+          sed -i "s|https://github.com/openmcp-project/[^/]*/releases/download/[^/]*/[^ ]*\.tar\.gz|https://github.com/openmcp-project/opencontrolplane-headlamp-plugin/releases/download/${VERSION}/headlamp-opencontrolplane-${SEMVER}.tar.gz|g" "$PKGFILE"
           sed -i "s|sha256:.*|sha256:${CHECKSUM}|" "$PKGFILE"
           echo "PKGFILE=${PKGFILE}" >> $GITHUB_ENV
 

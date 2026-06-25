@@ -1,6 +1,6 @@
-# Kiosk Mode — Headlamp Plugin
+# OpenControlPlane — Headlamp Plugin
 
-A [Headlamp](https://headlamp.dev) plugin that enables kiosk mode for embedded or display use cases.
+A [Headlamp](https://headlamp.dev) plugin for OpenControlPlane: hides navigation chrome, adds a Control Plane Overview page, and applies Fiori styling.
 
 ## What it does
 
@@ -8,20 +8,21 @@ A [Headlamp](https://headlamp.dev) plugin that enables kiosk mode for embedded o
 - Expands the main content area to full viewport
 - Auto-redirects the cluster root page
 - Re-applies styles on every SPA route change via `MutationObserver`
-- Uses the SAP UI5 color scheme
+- Uses the SAP UI5 / Fiori color scheme
+- Adds a Control Plane Overview page with component status and Crossplane providers
 
 ## Installation
 
-Install via Headlamp's built-in plugin manager by searching for **Kiosk Mode** on [ArtifactHub](https://artifacthub.io/packages/headlamp/kiosk-headlamp-plugin/headlamp_kiosk).
+Install via Headlamp's built-in plugin manager by searching for **OpenControlPlane** on [ArtifactHub](https://artifacthub.io/packages/headlamp/opencontrolplane-headlamp-plugin/opencontrolplane).
 
 ## Manual deploy via ConfigMap
 
-1. Download `main.js` from the [latest release](https://github.com/openmcp-project/kiosk-headlamp-plugin/releases).
+1. Download `main.js` from the [latest release](https://github.com/openmcp-project/opencontrolplane-headlamp-plugin/releases).
 
 2. Create the ConfigMap:
 
    ```bash
-   kubectl create configmap kiosk-plugin \
+   kubectl create configmap ocp-plugin \
      --from-file=main.js=main.js \
      -n headlamp --dry-run=client -o yaml | kubectl apply -f -
    ```
@@ -30,20 +31,20 @@ Install via Headlamp's built-in plugin manager by searching for **Kiosk Mode** o
 
    ```yaml
    volumes:
-     - name: kiosk-plugin
+     - name: ocp-plugin
        configMap:
-         name: kiosk-plugin
+         name: ocp-plugin
    volumeMounts:
-     - name: kiosk-plugin
-       mountPath: /headlamp/plugins/kiosk-mode/main.js
+     - name: ocp-plugin
+       mountPath: /headlamp/plugins/opencontrolplane/main.js
        subPath: main.js
    ```
 
 ## Support & Contributing
 
-Bug reports and feature requests via [GitHub Issues](https://github.com/openmcp-project/kiosk-headlamp-plugin/issues).
+Bug reports and feature requests via [GitHub Issues](https://github.com/openmcp-project/opencontrolplane-headlamp-plugin/issues).
 Contributions welcome — see the [Contribution Guidelines](https://github.com/openmcp-project/.github/blob/main/CONTRIBUTING.md).
 
 ## License
 
-Copyright © Linux Foundation Europe. See [LICENSE](https://github.com/openmcp-project/kiosk-headlamp-plugin/blob/main/LICENSE).
+Copyright © Linux Foundation Europe. See [LICENSE](https://github.com/openmcp-project/opencontrolplane-headlamp-plugin/blob/main/LICENSE).

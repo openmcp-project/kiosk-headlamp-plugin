@@ -1,6 +1,6 @@
 version: 0.0.1
-name: headlamp_kiosk
-displayName: Kiosk Mode
+name: opencontrolplane
+displayName: OpenControlPlane
 createdAt: "2026-05-27T00:00:00Z"
 description: Hides the sidebar and top bar, expands the main content to full viewport, and auto-redirects the cluster root page. Uses UI5 coloring scheme.
 logoURL: "https://avatars.githubusercontent.com/u/173142503?s=200&v=4"
@@ -9,7 +9,7 @@ changes:
     description: "Initial release"
 annotations:
   headlamp/plugin/archive-url: >-
-    https://github.com/openmcp-project/kiosk-headlamp-plugin/releases/download/v1.0.0/headlamp-kiosk-1.0.0.tar.gz
+    https://github.com/openmcp-project/opencontrolplane-headlamp-plugin/releases/download/v1.0.0/headlamp-opencontrolplane-1.0.0.tar.gz
   # Placeholder — automatically replaced by the release workflow after building the tar.gz.
   headlamp/plugin/archive-checksum: sha256:c63bf938d687cc0d8212700f12842851d12fa703e06158981e0714ea831b94f7
   headlamp/plugin/version-compat: ">=0.22"

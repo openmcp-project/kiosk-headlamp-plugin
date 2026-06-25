@@ -1,13 +1,14 @@
 {
-  "name": "kiosk-mode",
+  "name": "opencontrolplane",
   "version": "0.0.3",
-  "description": "Kiosk mode plugin for Headlamp — kiosk chrome removal, Fiori styling, and OCP overview page",
+  "description": "OpenControlPlane plugin for Headlamp — chrome removal, Fiori styling, and OCP overview page",
   "main": "main.js",
   "scripts": {
     "build": "npx @kinvolk/headlamp-plugin build"
   },
   "keywords": [
-    "Kiosk",
+    "OpenControlPlane",
+    "OCP",
     "openMCP",
     "Headlamp"
   ],
