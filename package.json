@@ -1,6 +1,6 @@
 {
   "name": "opencontrolplane",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "OpenControlPlane plugin for Headlamp — chrome removal, Fiori styling, and OCP overview page",
   "main": "main.js",
   "scripts": {
