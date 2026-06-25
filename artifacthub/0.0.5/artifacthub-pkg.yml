@@ -1,0 +1,15 @@
+version: 0.0.5
+name: opencontrolplane
+displayName: OpenControlPlane
+createdAt: "2026-05-28T00:00:00Z"
+description: Hides the sidebar and top bar, expands the main content to full viewport, and auto-redirects the cluster root page. Uses UI5 coloring scheme.
+logoURL: "https://avatars.githubusercontent.com/u/173142503?s=200&v=4"
+changes:
+  - kind: added
+    description: "Initial release"
+annotations:
+  headlamp/plugin/archive-url: >-
+    https://github.com/openmcp-project/opencontrolplane-headlamp-plugin/releases/download/v0.0.5/headlamp-opencontrolplane-0.0.5.tar.gz
+  headlamp/plugin/archive-checksum: sha256:15004b16a0f348c2d20b300f98efe6bc4dfa25e7292707a40af02cdc46296344
+  headlamp/plugin/version-compat: ">=0.22"
+  headlamp/plugin/distro-compat: in-cluster,web
