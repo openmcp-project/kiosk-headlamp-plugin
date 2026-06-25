@@ -1,7 +1,7 @@
 version: 0.0.4
 name: opencontrolplane
 displayName: OpenControlPlane
-createdAt: "2026-05-28T00:00:00Z"
+createdAt: "2026-06-25T12:00:00Z"
 description: Hides the sidebar and top bar, expands the main content to full viewport, and auto-redirects the cluster root page. Uses UI5 coloring scheme.
 logoURL: "https://avatars.githubusercontent.com/u/173142503?s=200&v=4"
 changes:
