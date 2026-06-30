@@ -8,6 +8,23 @@ import {
   K8s,
 } from '@kinvolk/headlamp-plugin/lib';
 
+const { Chip } = (window as any).pluginLib?.MuiCore ?? {};
+
+function conditionChip(healthy: boolean | null) {
+  const color = healthy === true ? '#4caf50' : healthy === false ? '#f44336' : '#9e9e9e';
+  const label = healthy === true ? 'Healthy' : healthy === false ? 'Unhealthy' : '—';
+  if (Chip) {
+    return React.createElement(Chip, {
+      label,
+      size: 'small',
+      style: { background: color, color: '#fff', fontWeight: 600 },
+    });
+  }
+  return React.createElement('span', {
+    style: { padding: '2px 8px', borderRadius: 10, background: color, color: '#fff', fontSize: 11, fontWeight: 600 },
+  }, label);
+}
+
 // ── Fiori Horizon design tokens ───────────────────────────────────────────────
 const FIORI = {
   primaryBlue:        '#0070F2',
@@ -163,23 +180,7 @@ function StatusChip({ installed }: { installed: boolean | null }) {
 }
 
 function HealthChip({ healthy }: { healthy: boolean | null }) {
-  const color = healthy === true ? '#4caf50' : healthy === false ? '#f44336' : '#888';
-  const label = healthy === true ? 'Healthy' : healthy === false ? 'Unhealthy' : 'Unknown';
-  return React.createElement(
-    'span',
-    {
-      style: {
-        display: 'inline-block',
-        padding: '2px 10px',
-        borderRadius: 12,
-        background: color,
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: 600,
-      },
-    },
-    label
-  );
+  return conditionChip(healthy);
 }
 
 function OverviewPage() {
@@ -344,6 +345,19 @@ function forceSidebarCollapsed() {
 
 // ── CSS: kiosk chrome removal + Fiori styling + OCP sidebar ordering ──────────
 function applyKioskStyles() {
+  const gradient = 'linear-gradient(180deg, transparent 0%, rgba(240,253,250,0.35) 50%, transparent 100%)';
+  [document.documentElement, document.body].forEach((el) => {
+    el.style.setProperty('background-color', '#ffffff', 'important');
+    el.style.setProperty('background-image', gradient, 'important');
+    el.style.setProperty('min-height', '100vh', 'important');
+  });
+
+  const mainEl = document.querySelector('main');
+  if (mainEl) mainEl.style.setProperty('background', 'transparent', 'important');
+
+  const root = document.getElementById('root');
+  if (root) root.style.setProperty('background', 'transparent', 'important');
+
   const styleId = 'kiosk-mode-styles';
   document.getElementById(styleId)?.remove();
 
@@ -364,9 +378,7 @@ function applyKioskStyles() {
     }
 
     /* ── Page & body background ── */
-    body, #root {
-      background-color: var(--kiosk-page-bg) !important;
-    }
+    /* Applied imperatively in JS to beat MUI CssBaseline */
 
     /* ── Hide the Headlamp AppBar (top bar with logo, search, user) ── */
     header[class*="MuiAppBar"],
@@ -389,12 +401,13 @@ function applyKioskStyles() {
       width: 100% !important;
       max-width: 100% !important;
       flex: 1 !important;
-      background-color: var(--kiosk-page-bg) !important;
+      background-color: transparent !important;
     }
 
-    /* ── Row wrapper fills full height ── */
+    /* ── Strip MUI box backgrounds so gradient shows through ── */
+    #root > div[class*="MuiBox"],
     #root > div[class*="MuiBox"] > div[class*="MuiBox"] {
-      width: 100% !important;
+      background-color: transparent !important;
     }
 
     /* ── Sidebar selected-item highlight (Fiori blue) ── */
